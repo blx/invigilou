@@ -1,0 +1,27 @@
+doctype html
+html(lang="en")
+    head
+        title Exam Traffic
+        style.
+            body {
+                font-family: Helvetica, sans-serif;
+                }
+        script(src="/js/lib/d3/d3.min.js")
+        link(rel="stylesheet", href="/js/lib/cal-heatmap/cal-heatmap.css")
+        script(src="/js/lib/cal-heatmap/cal-heatmap.min.js")
+    body
+        h1 Exam Traffic
+
+        #cal-heatmap
+
+        script.
+            var cal = new CalHeatMap();
+            cal.init({
+                data: "/api/calendar",
+                domain: "day",
+                start: new Date(2015, 3, 14),
+                itemName: "exam"
+            });
+
+        #chart
+        script(src="/js/exams.js")
