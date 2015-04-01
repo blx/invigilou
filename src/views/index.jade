@@ -21,7 +21,16 @@ html(lang="en")
                 data: "/api/calendar",
                 domain: "day",
                 start: new Date(2015, 3, 14),
-                itemName: "exam"
+                range: 16,
+                itemName: "exam",
+                afterLoadData: function(data) {
+                    return Object.getOwnPropertyNames(data).reduce(
+                        function(acc, current) {
+                            // timezones be fucky, see https://github.com/kamisama/cal-heatmap/issues/122
+                            acc[+current + (new Date(current*1000)).getTimezoneOffset()*60] = data[current];
+                            return acc;
+                        }, {});
+                    }
             });
 
         h2 It's #{time} on #{date}.
