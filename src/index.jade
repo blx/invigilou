@@ -23,5 +23,10 @@ html(lang="en")
                 itemName: "exam"
             });
 
+        h2 It's #{time} on #{date}.
+        each exam in ee
+            p #{exam.coursecode} in #{exam.building} (#{exam.shortcode}) at #{exam.datetime}
+
         #chart
         script(src="/js/exams.js")
+

@@ -13,7 +13,7 @@ Check out `profile.clj` for the lowdown on dependencies.
 
 [leiningen]: https://github.com/technomancy/leiningen
 
-## Fetching data
+## (Setup) Fetching data
 
 *To get exam schedule info:*
 ```
@@ -38,7 +38,7 @@ $ lein ring server-headless
 Now navigate to `localhost:3000/createdb` followed by
 `localhost:3000/fetchaddresses`.
 
-These two .sqlite databases could've been stashed in the repo,
+This data now lives in data/exam-schedule.sqlite, which could've been stashed in the repo,
 but honestly... binaries? in my repo? tsk tsk
 
 ## License

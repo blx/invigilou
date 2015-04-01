@@ -9,15 +9,12 @@
             [net.cgrand.enlive-html :as html]
             [clojure.java.jdbc :as sql]))
 
-(def db-b {:subprotocol "sqlite"
-           :subname "data/ubc-buildings.sqlite"
-           :classname "org.sqlite.JDBC"})
-(def db-e {:subprotocol "sqlite"
-           :subname "data/exam-schedule.sqlite"
-           :classname "org.sqlite.JDBC"})
+(def db {:subprotocol "sqlite"
+         :subname "data/exam-schedule.sqlite"
+         :classname "org.sqlite.JDBC"})
 
 (defn- setup-db []
-  (sql/db-do-commands db-b
+  (sql/db-do-commands db
                       (sql/create-table-ddl :buildings
                                             [:code :text "PRIMARY KEY"]
                                             [:name :text]
@@ -27,12 +24,24 @@
   (let [url "http://www.students.ubc.ca/classroomservices/buildings-and-classrooms/"
         rows (-> (html/html-resource (clojure.java.io/as-url url))
                  (html/select [:.dataTable :tr]))]
-    (apply sql/insert! db-b :buildings
+    (apply sql/insert! db :buildings
            (map #(let [tds (html/select % [:td])]
                    {:code (-> (first tds) :content first :content first)
                     :name (-> (second tds) :content first :content first)
                     :address (-> (nth tds 2) :content first)})
                 rows))))
+
+(defn building-name [code]
+  "Lookup full name from SIS building shortcode"
+  (let [res (sql/query db
+                       ["SELECT name
+                        FROM buildings
+                        WHERE code = ?"
+                        code])]
+    (if (> (count res) 0)
+      (:name (first res))
+      code)))
+
 
 (defn- building-address [code]
   "Return street address of SIS building shortcode"
@@ -49,7 +58,7 @@
   (str "Hello " code))
 
 (defn api-calendar []
-  (->> (sql/query db-e
+  (->> (sql/query db
                   ["SELECT
                        strftime('%s', datetime) as datetime,
                        count(*) as n
@@ -59,9 +68,25 @@
        (reduce #(assoc %1 (keyword (:datetime %2)) (:n %2))
                {})))
 
+(defn next-exams []
+  (sql/query db
+             ["SELECT
+                  ifnull(b.name, s.building) as building,
+                  s.coursecode,
+                  s.datetime,
+                  s.building as shortcode
+              FROM schedule_2014w2 s
+              LEFT JOIN buildings b ON b.code = s.building
+              WHERE datetime >= datetime('now')
+              ORDER BY datetime"]))
 
 (defn render-home [req]
-  (jade/render "src/index.jade"))
+  (jade/render "src/index.jade"
+               {:time "1:35 AM"
+                :date "Wednesday, April 1st"
+                :ee (take 10 (next-exams))
+                :exams [" 9:00 AM: CPSC 210 in DMP 110"
+                        "11:00 AM: ECON 101 in ANGU 200"]}))
 
 (defroutes app-routes
   (GET "/sis/:code" [code] (building-address code))
@@ -69,7 +94,6 @@
   ;(GET "/fetchaddresses" [] (fn [req] (get-addresses)))
   ;(GET "/createdb" [] (fn [req] (setup-db)))
   (GET "/" [] render-home)
-  ;(GET "/" [] "Hello World")
   (route/resources "/")
   (route/not-found "Not Found"))
 
