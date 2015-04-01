@@ -9,6 +9,7 @@ html(lang="en")
         script(src="/js/lib/d3/d3.min.js")
         link(rel="stylesheet", href="/js/lib/cal-heatmap/cal-heatmap.css")
         script(src="/js/lib/cal-heatmap/cal-heatmap.min.js")
+        script(src="/js/lib/moment/moment.js")
     body
         h1 Exam Traffic
 
@@ -24,8 +25,14 @@ html(lang="en")
             });
 
         h2 It's #{time} on #{date}.
-        each exam in ee
-            p #{exam.coursecode} in #{exam.building} (#{exam.shortcode}) at #{exam.datetime}
+        //- TODO is this jade4j's fault? should be .length, not .length()
+        if exams.length() > 0
+            p The next exams are 
+                span#nextexams at #{exams[0].datetime}.
+            each exam in exams
+                p #{exam.coursecode} in #{exam.building} (#{exam.shortcode}) at #{exam.datetime}
+        else
+            p No upcoming exams!!
 
         #chart
         script(src="/js/exams.js")

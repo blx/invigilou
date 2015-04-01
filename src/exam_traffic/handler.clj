@@ -9,6 +9,8 @@
             [net.cgrand.enlive-html :as html]
             [clojure.java.jdbc :as sql]))
 
+(jade/configure {:template-dir "src/views/"})
+
 (def db {:subprotocol "sqlite"
          :subname "data/exam-schedule.sqlite"
          :classname "org.sqlite.JDBC"})
@@ -68,25 +70,38 @@
        (reduce #(assoc %1 (keyword (:datetime %2)) (:n %2))
                {})))
 
-(defn next-exams []
-  (sql/query db
-             ["SELECT
-                  ifnull(b.name, s.building) as building,
-                  s.coursecode,
-                  s.datetime,
-                  s.building as shortcode
-              FROM schedule_2014w2 s
-              LEFT JOIN buildings b ON b.code = s.building
-              WHERE datetime >= datetime('now')
-              ORDER BY datetime"]))
+(defn next-exams
+  "Get all exams scheduled at or after `after` (defaults to 'now')."
+  ([] (next-exams "now"))
+  ([after]
+   (sql/query db
+              ["SELECT
+                   ifnull(b.name, s.building) as building,
+                   s.coursecode,
+                   s.datetime,
+                   s.building as shortcode
+               FROM schedule_2014w2 s
+               LEFT JOIN buildings b ON b.code = s.building
+               WHERE datetime >= datetime(?)
+               ORDER BY datetime, coursecode"
+               after])))
+
+(defn next-exams-time []
+  "Get all exams at the next exam time."
+  (->> (next-exams)
+       (reduce #(if (or (empty? %1)
+                        (= (:datetime %2)
+                           (:datetime (last %1))))
+                  (conj %1 %2)
+                  (reduced %1))
+               [])))
 
 (defn render-home [req]
-  (jade/render "src/index.jade"
+  (jade/render "index.jade"
                {:time "1:35 AM"
                 :date "Wednesday, April 1st"
                 :ee (take 10 (next-exams))
-                :exams [" 9:00 AM: CPSC 210 in DMP 110"
-                        "11:00 AM: ECON 101 in ANGU 200"]}))
+                :exams (next-exams-time)}))
 
 (defroutes app-routes
   (GET "/sis/:code" [code] (building-address code))

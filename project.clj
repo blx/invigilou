@@ -14,7 +14,8 @@
   :plugins [[lein-ring "0.8.13"]
             [lein-bower "0.5.1"]
             [lein-coffee "0.2.1"]]
-  :bower-dependencies [[cal-heatmap "3.5.2"]]
+  :bower-dependencies [[cal-heatmap "3.5.2"]
+                       [moment "2.9.0"]]
   :bower {:directory "resources/public/js/lib"}
   :lein-coffee
   {:compile-hook true
