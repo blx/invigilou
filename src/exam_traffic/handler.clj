@@ -86,22 +86,53 @@
                ORDER BY datetime, coursecode"
                after])))
 
-(defn next-exams-time []
-  "Get all exams at the next exam time."
-  (->> (next-exams)
+(defn next-exams-time
+  "Get all exams at the next `N` > 0 exam times. Eg., if now is 07:00 and
+  next exam times are 08:30, 12:00, 15:30, etc., and we ask for 2, get
+  all exams at 08:30 and 12:00."
+  ([] (next-exams-time 1))
+  ([N] (->> (next-exams)
+            (reduce #(let [exams (:exams %1)
+                           n (:n %1)
+                           this %2]
+                       (if (or (empty? exams)
+                               (= (:datetime this)
+                                  (:datetime (last exams))))
+                         (assoc %1 :exams (conj exams this))
+                         (if (< n N)
+                           (assoc %1
+                                  :n (inc n)
+                                  :exams (conj exams this))
+                           (reduced %1))))
+                    {:exams [] :n 1})
+            :exams)))
+(comment
        (reduce #(if (or (empty? %1)
                         (= (:datetime %2)
                            (:datetime (last %1))))
                   (conj %1 %2)
                   (reduced %1))
-               [])))
+               [])
+       )
+
+(defn ordinal-suffix [n]
+  "Ordinal suffix for days-of-month"
+  (if (<= 11 n 13)
+    "th"
+    (case (mod n 10)
+      1 "st"
+      2 "nd"
+      3 "rd"
+      "th")))
 
 (defn render-home [req]
+  (let [now (java.util.Date.)
+        timefmt (java.text.SimpleDateFormat. "k:mm a")
+        datefmt (java.text.SimpleDateFormat. "EEEE, MMMM F")]
   (jade/render "index.jade"
-               {:time "1:35 AM"
-                :date "Wednesday, April 1st"
-                :ee (take 10 (next-exams))
-                :exams (next-exams-time)}))
+               {:time (.format timefmt now)
+                :date (str (.format datefmt now) (ordinal-suffix (.getDate now)))
+                :exams (next-exams-time)})))
 
 (defroutes app-routes
   (GET "/sis/:code" [code] (building-address code))
