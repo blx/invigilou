@@ -97,7 +97,7 @@
                            this %2]
                        (if (or (empty? exams)
                                (= (:datetime this)
-                                  (:datetime (last exams))))
+                                  (:datetime (peek exams))))
                          (assoc %1 :exams (conj exams this))
                          (if (< n N)
                            (assoc %1
@@ -128,7 +128,7 @@
 (defn render-home [req]
   (let [now (java.util.Date.)
         timefmt (java.text.SimpleDateFormat. "k:mm a")
-        datefmt (java.text.SimpleDateFormat. "EEEE, MMMM F")]
+        datefmt (java.text.SimpleDateFormat. "EEEE, MMMM d")]
   (jade/render "index.jade"
                {:time (.format timefmt now)
                 :date (str (.format datefmt now) (ordinal-suffix (.getDate now)))
