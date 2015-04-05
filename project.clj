@@ -1,6 +1,6 @@
 (defproject exam-traffic "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "Analysis of UBC exam schedule"
+  :url "https://github.com/blx/exam-traffic"
   :min-lein-version "2.0.0"
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [compojure "1.3.1"]
@@ -11,9 +11,10 @@
                  [enlive "1.1.5"]
                  [clj-jade "0.1.5"]
                  [ring/ring-json "0.3.1"]]
-  :plugins [[lein-ring "0.8.13"]
-            [lein-bower "0.5.1"]
-            [lein-coffee "0.2.1"]]
+  :plugins [[lein-ring "0.8.13" :exclusions [org.clojure/clojure]]
+            [lein-bower "0.5.1" :exclusions [org.clojure/clojure]]
+            [lein-coffee "0.2.1" :exclusions [org.clojure/clojure]]
+            [lein-marginalia "0.8.0" :exclusions [org.clojure/clojure]]]
   :bower-dependencies [[cal-heatmap "3.5.2"]
                        [moment "2.9.0"]]
   :bower {:directory "resources/public/js/lib"}
