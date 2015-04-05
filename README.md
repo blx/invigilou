@@ -8,9 +8,11 @@ You will need [Leiningen][] 2.0.0 or above installed.
 
 We also use leiningen wrappers for Coffeescript, Jade, and Bower.
 
-Check out `profile.clj` for the lowdown on dependencies.
+Check out `profile.clj` for the lowdown on dependencies. Not listed there is
+[Leaflet.heat][].
 
 [leiningen]: https://github.com/technomancy/leiningen
+[Leaflet.heat]: https://github.com/Leaflet/Leaflet.heat
 
 ## (Setup) Fetching data
 
@@ -39,6 +41,13 @@ Now navigate to `localhost:3000/createdb` followed by
 
 This data now lives in data/exam-schedule.sqlite, which could've been stashed in the repo,
 but honestly... binaries? in my repo? tsk tsk
+
+## Building assets
+
+If you watch your coffee closely enough, it will turn into Javascript:
+```
+$ lein coffee watch
+```
 
 ## License
 
