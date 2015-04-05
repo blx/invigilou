@@ -1,4 +1,4 @@
-(defproject exam-traffic "0.1.0-SNAPSHOT"
+(defproject invigilou "0.1.0-SNAPSHOT"
   :description "Analysis of UBC exam schedule"
   :url "https://github.com/blx/exam-traffic"
   :min-lein-version "2.0.0"
@@ -25,7 +25,7 @@
    :coffee {:sources ["src/coffee/exams.coffee"]
             :output "resources/public/js"
             :bare true}}
-  :ring {:handler exam-traffic.handler/app}
+  :ring {:handler invigilou.handler/app}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring-mock "0.1.5"]]}})

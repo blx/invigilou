@@ -20,6 +20,8 @@ html(lang="en")
 
         #cal-heatmap
 
+        #zz
+
         script.
             var cal = new CalHeatMap();
             cal.init({
@@ -43,7 +45,7 @@ html(lang="en")
 
         h2 It's #{time} on #{date}.
         script
-            (window.exams = window.exams || {})._exams = !{ee};
+            (window.exams = window.exams || {})._exams = !{exams};
         //-
             div= exams
             if exams.length > 0
@@ -57,4 +59,3 @@ html(lang="en")
         #chart
          
         script(src="/js/exams.js")
-

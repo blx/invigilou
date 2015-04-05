@@ -1,4 +1,4 @@
-(ns exam-traffic.handler
+(ns invigilou.handler
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
@@ -113,7 +113,6 @@
   ([] (next-exams "now"))
   ([after] (next-exams after 1))
   ([after N]
-   (echo
    (sql/query db
               ["SELECT
                    ifnull(b.name, s.building) as building,
@@ -129,7 +128,7 @@
                     ON f.datetime = s.datetime
                LEFT JOIN buildings b ON b.code = s.building
                ORDER BY s.datetime, coursecode"
-               after N]))))
+               after N])))
 
 (defn ordinal-suffix
   "Ordinal suffix for days-of-month"
@@ -149,7 +148,7 @@
   (jade/render "index.jade"
                {:time (.format timefmt now)
                 :date (str (.format datefmt now) (ordinal-suffix (.getDate now)))
-                :ee (cheshire/encode (next-exams "now" 2))})))
+                :exams (cheshire/encode (next-exams "now" 2))})))
 
 (defroutes app-routes
   (GET "/sis/:code" [code] (building-address code))
