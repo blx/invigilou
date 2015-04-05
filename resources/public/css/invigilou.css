@@ -1,0 +1,31 @@
+body {
+    font-family: Helvetica Neue, Helvetica, sans-serif;
+}
+#map { height: 700px; width: 900px; margin-top: 20px; }
+
+
+#times svg {
+    font: 12px Helvetica Neue, Helvetica, sans-serif;
+}
+
+.zoom {
+    fill: transparent;
+    cursor: pointer;
+}
+
+.y-axis path,
+.y-axis line,
+.x-axis path,
+.x-axis line {
+    stroke: black;
+    fill: none;
+    stroke-width: 1px;
+}
+.y-axis g line {
+    stroke: grey;
+    fill: none;
+    stroke-width: 1px;
+}
+#times .line circle {
+    opacity: 0.1;
+}

@@ -16,7 +16,8 @@
             [lein-coffee "0.2.1" :exclusions [org.clojure/clojure]]
             [lein-marginalia "0.8.0" :exclusions [org.clojure/clojure]]]
   :bower-dependencies [[cal-heatmap "3.5.2"]
-                       [moment "2.9.0"]]
+                       [moment "2.9.0"]
+                       [event-drops "0.1.1"]]
   :bower {:directory "resources/public/js/lib"}
   :lein-coffee
   {:compile-hook true

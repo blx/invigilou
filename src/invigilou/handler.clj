@@ -148,7 +148,7 @@
   (jade/render "index.jade"
                {:time (.format timefmt now)
                 :date (str (.format datefmt now) (ordinal-suffix (.getDate now)))
-                :exams (cheshire/encode (next-exams "now" 2))})))
+                :exams (cheshire/encode (next-exams "now" 999))})))
 
 (defroutes app-routes
   (GET "/sis/:code" [code] (building-address code))
