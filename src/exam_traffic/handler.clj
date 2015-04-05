@@ -9,20 +9,20 @@
             [net.cgrand.enlive-html :as html]
             [clojure.java.jdbc :as sql]))
 
-(jade/configure {:template-dir "src/views/"})
+(jade/configure {:template-dir "src/views/"
+                 :pretty-print true})
 
 (def db {:subprotocol "sqlite"
-         :subname "data/exam-schedule.sqlite"
-         :classname "org.sqlite.JDBC"})
+         :subname "data/exam-schedule.sqlite"})
 
-(defn- setup-db []
+(defn- setup-db! []
   (sql/db-do-commands db
                       (sql/create-table-ddl :buildings
                                             [:code :text "PRIMARY KEY"]
                                             [:name :text]
                                             [:address :text])))
 
-(defn- get-addresses []
+(defn- get-addresses! []
   (let [url "http://www.students.ubc.ca/classroomservices/buildings-and-classrooms/"
         rows (-> (html/html-resource (clojure.java.io/as-url url))
                  (html/select [:.dataTable :tr]))]
@@ -33,8 +33,9 @@
                     :address (-> (nth tds 2) :content first)})
                 rows))))
 
-(defn building-name [code]
+(defn building-name
   "Lookup full name from SIS building shortcode"
+  [code]
   (let [res (sql/query db
                        ["SELECT name
                         FROM buildings
@@ -45,8 +46,9 @@
       code)))
 
 
-(defn- building-address [code]
+(defn- building-address
   "Return street address of SIS building shortcode"
+  [code]
   (let [url (str "http://www.students.ubc.ca/classroomservices/buildings-and-classrooms/"
                  "?code=" code)]
     (-> (html/html-resource (clojure.java.io/as-url url))
@@ -117,6 +119,7 @@
 
 (defn ordinal-suffix [n]
   "Ordinal suffix for days-of-month"
+  [n]
   (if (<= 11 n 13)
     "th"
     (case (mod n 10)
@@ -127,7 +130,7 @@
 
 (defn render-home [req]
   (let [now (java.util.Date.)
-        timefmt (java.text.SimpleDateFormat. "k:mm a")
+        timefmt (java.text.SimpleDateFormat. "K:mm a")
         datefmt (java.text.SimpleDateFormat. "EEEE, MMMM d")]
   (jade/render "index.jade"
                {:time (.format timefmt now)
@@ -137,8 +140,8 @@
 (defroutes app-routes
   (GET "/sis/:code" [code] (building-address code))
   (GET "/api/calendar" [] (response (api-calendar)))
-  ;(GET "/fetchaddresses" [] (fn [req] (get-addresses)))
-  ;(GET "/createdb" [] (fn [req] (setup-db)))
+  ;(GET "/fetchaddresses" [] (fn [req] (get-addresses!)))
+  ;(GET "/createdb" [] (fn [req] (setup-db!)))
   (GET "/" [] render-home)
   (route/resources "/")
   (route/not-found "Not Found"))
