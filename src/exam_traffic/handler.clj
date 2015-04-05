@@ -7,7 +7,8 @@
             [clj-jade.core :as jade]
             [clj-http.client :as http]
             [net.cgrand.enlive-html :as html]
-            [clojure.java.jdbc :as sql]))
+            [clojure.java.jdbc :as sql]
+            [cheshire.core :as cheshire]))
 
 (jade/configure {:template-dir "src/views/"
                  :pretty-print true})
@@ -20,7 +21,30 @@
                       (sql/create-table-ddl :buildings
                                             [:code :text "PRIMARY KEY"]
                                             [:name :text]
-                                            [:address :text])))
+                                            [:address :text]
+                                            [:lat "DECIMAL(9,6)"]
+                                            [:lng "DECIMAL(9,6)"])))
+
+(defn- geocode
+  "Return lat/lng map from given address string."
+  [addr]
+  (let [endpoint "https://maps.googleapis.com/maps/api/geocode/json"
+        res (http/get endpoint
+                      {:query-params {:address addr}})
+        data (cheshire/parse-string (:body res) true)]
+    (get-in data [:results 0 :geometry :location])))
+
+(defn add-coords! []
+  (http/with-connection-pool {}
+    (doseq [b (sql/query db ["SELECT DISTINCT address
+                             FROM buildings
+                             WHERE lat is null OR lng is null"])]
+      (-> b
+          (#(merge % (geocode (str (:address %) ", Vancouver BC"))))
+          (#(sql/update! db :buildings % ["address = ?" (:address %)]))
+          (#(println %))))))
+
+
 
 (defn- get-addresses! []
   (let [url "http://www.students.ubc.ca/classroomservices/buildings-and-classrooms/"
@@ -61,6 +85,11 @@
             {:query-params {:code code}})
   (str "Hello " code))
 
+(defn api-building-coords [code]
+  (first
+    (sql/query db ["SELECT lat, lng FROM buildings
+                   WHERE code = ?" code])))
+
 (defn api-calendar []
   (->> (sql/query db
                   ["SELECT
@@ -72,52 +101,37 @@
        (reduce #(assoc %1 (keyword (:datetime %2)) (:n %2))
                {})))
 
+(defn echo [s]
+  (println s)
+  s)
+
 (defn next-exams
-  "Get all exams scheduled at or after `after` (defaults to 'now')."
+  "Get all exams at the next `N` > 0 exam times after `after`. Eg., if
+  now is 07:00 and next exam times are 08:30, 12:00, 15:30, etc., and
+  we ask for next 2 exam blocks after 10:15, get all exams at 12:00 and
+  15:30. With no arguments, N=1 and after=now."
   ([] (next-exams "now"))
-  ([after]
+  ([after] (next-exams after 1))
+  ([after N]
+   (echo
    (sql/query db
               ["SELECT
                    ifnull(b.name, s.building) as building,
                    s.coursecode,
                    s.datetime,
-                   s.building as shortcode
+                   s.building as shortcode,
+                   b.lat,
+                   b.lng
                FROM schedule_2014w2 s
+               JOIN (SELECT datetime FROM schedule_2014w2
+                     WHERE datetime >= datetime(?)
+                     GROUP BY datetime LIMIT ?) f
+                    ON f.datetime = s.datetime
                LEFT JOIN buildings b ON b.code = s.building
-               WHERE datetime >= datetime(?)
-               ORDER BY datetime, coursecode"
-               after])))
+               ORDER BY s.datetime, coursecode"
+               after N]))))
 
-(defn next-exams-time
-  "Get all exams at the next `N` > 0 exam times. Eg., if now is 07:00 and
-  next exam times are 08:30, 12:00, 15:30, etc., and we ask for 2, get
-  all exams at 08:30 and 12:00."
-  ([] (next-exams-time 1))
-  ([N] (->> (next-exams)
-            (reduce #(let [exams (:exams %1)
-                           n (:n %1)
-                           this %2]
-                       (if (or (empty? exams)
-                               (= (:datetime this)
-                                  (:datetime (peek exams))))
-                         (assoc %1 :exams (conj exams this))
-                         (if (< n N)
-                           (assoc %1
-                                  :n (inc n)
-                                  :exams (conj exams this))
-                           (reduced %1))))
-                    {:exams [] :n 1})
-            :exams)))
-(comment
-       (reduce #(if (or (empty? %1)
-                        (= (:datetime %2)
-                           (:datetime (last %1))))
-                  (conj %1 %2)
-                  (reduced %1))
-               [])
-       )
-
-(defn ordinal-suffix [n]
+(defn ordinal-suffix
   "Ordinal suffix for days-of-month"
   [n]
   (if (<= 11 n 13)
@@ -135,10 +149,13 @@
   (jade/render "index.jade"
                {:time (.format timefmt now)
                 :date (str (.format datefmt now) (ordinal-suffix (.getDate now)))
-                :exams (next-exams-time)})))
+                :ee (cheshire/encode (next-exams "now" 2))})))
 
 (defroutes app-routes
   (GET "/sis/:code" [code] (building-address code))
+  (GET "/geo" [] (fn [req] (response (geocode "2211 Wesbrook Mall, Vancouver BC"))))
+  ;(GET "/coords" [] (fn [req] (add-coords!)))
+  (GET "/api/building-coords/:code" [code] (response (api-building-coords code)))
   (GET "/api/calendar" [] (response (api-calendar)))
   ;(GET "/fetchaddresses" [] (fn [req] (get-addresses!)))
   ;(GET "/createdb" [] (fn [req] (setup-db!)))
