@@ -6,8 +6,7 @@ When do exams happen? idk let's find out.
 
 You will need [Leiningen][] 2.0.0 or above installed.
 
-Furthermore, we use leiningen wrappers for a tonne of hip things like
-Coffeescript, Jade, and Bower. Whoop-de-doo.
+We also use leiningen wrappers for Coffeescript, Jade, and Bower.
 
 Check out `profile.clj` for the lowdown on dependencies.
 
