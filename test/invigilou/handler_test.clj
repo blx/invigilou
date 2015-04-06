@@ -1,7 +1,7 @@
-(ns exam-traffic.handler-test
+(ns invigilou.handler-test
   (:require [clojure.test :refer :all]
             [ring.mock.request :as mock]
-            [exam-traffic.handler :refer :all]))
+            [invigilou.handler :refer :all]))
 
 (deftest test-app
   (testing "main route"

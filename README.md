@@ -1,4 +1,4 @@
-# exam-traffic
+# invigiloù
 
 When do exams happen? idk let's find out.
 
@@ -30,7 +30,7 @@ $ python
 *To get building info:*
 
 Uncomment the `/createdb` and `/fetchaddresses` routes in
-`src/exam_traffic/handler.clj`.
+`src/invigilou/handler.clj`.
 
 ```
 $ lein ring server-headless
