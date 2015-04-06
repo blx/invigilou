@@ -1,18 +1,27 @@
 exams = ( (self) ->
 
     self.doTime = (parentdiv) ->
+        self.baserange = [
+            self._exams[0].datetime
+            self._exams[self._exams.length-1].datetime]
         chart = d3.chart.eventDrops()
             .width 1000
             .margin
                 top: 70, left: 150, bottom: 20, right: 40
-            .start new Date self._exams[0].datetime
-            .end new Date self._exams[self._exams.length - 1].datetime
-            .eventZoom (scl) -> self.map.updateFromScale scl, self._exams
-        self.c = chart
-        self.x = (new Date(x.datetime) for x in self._exams)
+            .start self.baserange[0]
+            .end self.baserange[1]
+            .eventZoom _.debounce ((scl) -> self.map.updateFromScale scl, self._exams),
+                                  150
         d3.select parentdiv
-            .datum [{name: "exams", dates: (new Date(x.datetime) for x in self._exams)}]
+            .datum [{name: 'exams', dates: _(self._exams).pluck('datetime')}]
             .call chart
+        
+        d3.select parentdiv
+            .append 'p'
+            .text "Full range"
+            .on "click", ->
+                # TODO need to force update of zoom on eventdrops
+                self.map.updateFromScale self.baserange, self._exams
         return
 
 
@@ -35,7 +44,10 @@ exams = ( (self) ->
         
         self.updateFromScale = (scale, exams) ->
             self.updateMap _(exams).filter (x) ->
-                scale.domain()[0] <= x.datetime <= scale.domain()[1]
+                if scale.domain?
+                    scale.domain()[0] <= x.datetime <= scale.domain()[1]
+                else
+                    scale[0] <= x.datetime <= scale[1]
 
         self.updateMap = (exams) ->
             return unless mapcontrol?
