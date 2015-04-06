@@ -1,6 +1,6 @@
 # invigiloù
 
-When do exams happen? idk let's find out.
+When and where do exams happen? idk let's find out.
 
 ## Prerequisites
 
