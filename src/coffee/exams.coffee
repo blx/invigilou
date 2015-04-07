@@ -39,7 +39,7 @@ exams = ( (self) ->
         mapcontrol = null
 
         self.doMap = (parentdiv) ->
-            tiles = L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+            tiles = L.tileLayer '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             self.map = L.map parentdiv,
                              center: [49.2651, -123.2522]
