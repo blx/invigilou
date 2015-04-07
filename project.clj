@@ -5,6 +5,8 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [compojure "1.3.1"]
                  [ring/ring-defaults "0.1.2"]
+                 [ring/ring-jetty-adapter "1.2.2"]
+                 [environ "0.5.0"]
                  [org.clojure/java.jdbc "0.3.6"]
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [clj-http "1.1.0"]
@@ -17,7 +19,7 @@
             [lein-marginalia "0.8.0" :exclusions [org.clojure/clojure]]]
   :bower-dependencies [[cal-heatmap "3.5.2"]
                        [moment "2.9.0"]
-                       [event-drops "blx/EventDrops"]]
+                       [EventDrops "blx/EventDrops#master"]]
   :bower {:directory "resources/public/js/lib"}
   :lein-coffee
   {:compile-hook true
@@ -27,6 +29,8 @@
             :output "resources/public/js"
             :bare true}}
   :ring {:handler invigilou.handler/app}
+  :uberjar-name "invigilou-standalone.jar"
   :profiles
-  {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
+  {:uberjar {:aot :all}
+   :dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring-mock "0.1.5"]]}})

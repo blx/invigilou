@@ -1,6 +1,8 @@
 (ns invigilou.handler
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
+            [ring.adapter.jetty :as jetty]
+            [environ.core :refer [env]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.middleware.json :as json-middleware]
             [ring.util.response :refer [response]]
@@ -170,3 +172,9 @@
   (-> app-routes
       (json-middleware/wrap-json-response)
       (wrap-defaults site-defaults)))
+
+(defn -main [& [port]]
+  (let [port (Integer. (or port (env :port) 5000))]
+    (jetty/run-jetty app
+                     {:port port
+                      :join? false})))
