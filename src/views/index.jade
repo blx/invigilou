@@ -51,14 +51,5 @@ html(lang="en")
         //h2 It's #{time} on #{date}.
         script
             (window.exams = window.exams || {})._exams = !{exams};
-        //-
-            div= exams
-            if exams.length > 0
-                p The next exams are 
-                    span#nextexams at #{exams[0].datetime}.
-                each exam in exams
-                    p #{exam.coursecode} in #{exam.building} (#{exam.shortcode}) at #{exam.datetime}
-            else
-                p No upcoming exams!!
 
         script(src="/js/exams.js")

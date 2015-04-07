@@ -66,11 +66,14 @@ exams = ( (self) ->
                 seen.push x.shortcode
                 markers.push L.marker([x.lat, x.lng]).bindPopup "#{x.building}: #{lox[x.building]}"
 
-            self.map.removeLayer heatlayer if heatlayer?
-            heatlayer = L.heatLayer latlngs,
-                        radius: 20
-                        minOpacity: .2
-                .addTo self.map
+            if heatlayer?
+                heatlayer.setLatLngs latlngs
+            else
+                heatlayer = L.heatLayer latlngs,
+                                        radius: 25
+                                        minOpacity: .2
+                                        max: 1.1
+                    .addTo self.map
 
             if markerlayer?
                 markerlayer.clearLayers()

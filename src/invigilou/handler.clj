@@ -34,7 +34,11 @@
         data (cheshire/parse-string (:body res) true)]
     (get-in data [:results 0 :geometry :location])))
 
-(defn add-coords! []
+(defn add-coords!
+  "Geocode all buildings in db that are missing lat/lng.
+  NOTE: this only did ~2/3 of them on the
+  first run, I think Google was throttling or something."
+  []
   (http/with-connection-pool {}
     (doseq [b (sql/query db ["SELECT DISTINCT address
                              FROM buildings
