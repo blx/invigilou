@@ -1,0 +1,13 @@
+{
+    "name": "invigilou",
+    "version": "0.1.0",
+    "private": true,
+    "engines": {
+        "npm": "2.1.x"
+    },
+    "repository": "blx/invigilou",
+    "scripts": {
+        "postinstall": "bower install && coffee --compile --output resources/public/js/ src/coffee/"
+    }
+}
+
