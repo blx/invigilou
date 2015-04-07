@@ -1,11 +1,42 @@
 body {
     font-family: Helvetica Neue, Helvetica, sans-serif;
+    font-size: 12px;
+    width: 930px;
+    margin: 0 auto;
+    padding: 0 10px;
+    border-left: 1px solid #aaa;
+    border-right: 1px solid #aaa;
 }
-#map { height: 700px; width: 900px; margin-top: 20px; }
+h1 {
+    font-size: 2.5em;
+}
+h1 span {
+    font-size: 0.7em;
+    color: #777;
+}
 
+#map {
+    height: 700px;
+    width: 930px;
+    margin: 20px auto 0;
+}
 
+#times {
+    width: 930px;
+    //border: 1px solid blue;
+    margin: 0 auto;
+}
 #times svg {
     font: 12px Helvetica Neue, Helvetica, sans-serif;
+}
+#times .rightbutton {
+    margin-right: 27px;
+    cursor: pointer;
+    display: inline-block;
+    float: right;
+}
+#times .times-exam-count {
+    font-size: 16px;
 }
 
 .zoom {

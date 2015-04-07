@@ -5,11 +5,12 @@ exams = ( (self) ->
             self._exams[0].datetime
             self._exams[self._exams.length-1].datetime]
         chart = d3.chart.eventDrops()
-            .width 1000
+            .width 930
             .margin
-                top: 70, left: 150, bottom: 20, right: 40
+                top: 70, left: 30, bottom: 0, right: 30
             .start self.baserange[0]
             .end self.baserange[1]
+            .hasLabels false
             .eventZoom _.debounce ((scl) -> self.map.updateFromScale scl, self._exams),
                                   150
         d3.select parentdiv
@@ -18,7 +19,8 @@ exams = ( (self) ->
         
         d3.select parentdiv
             .append 'p'
-            .text "Full range"
+            .text "(restore full range)"
+            .attr 'class', 'rightbutton'
             .on "click", ->
                 # TODO need to force update of zoom on eventdrops
                 self.map.updateFromScale self.baserange, self._exams
