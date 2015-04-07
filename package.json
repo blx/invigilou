@@ -6,6 +6,9 @@
         "npm": "2.1.x"
     },
     "repository": "blx/invigilou",
+    "dependencies": {
+        "bower": ">=1.3.12"
+    },
     "scripts": {
         "postinstall": "bower install && coffee --compile --output resources/public/js/ src/coffee/"
     }
