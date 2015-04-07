@@ -2,6 +2,8 @@
 
 When and where do exams happen? idk let's find out.
 
+See on [Heroku](https://invigilou.herokuapp.com)!
+
 ## Prerequisites
 
 You will need [Leiningen][] 2.0.0 or above installed.
