@@ -5,7 +5,6 @@
     "dependencies": {
         "cal-heatmap": ">=3.5.2",
         "moment": ">=2.9.0",
-        "EventDrops": "blx/EventDrops#master",
-        "coffee-script": ">=1.9.1"
+        "EventDrops": "blx/EventDrops#master"
     }
 }
