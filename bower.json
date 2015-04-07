@@ -5,6 +5,7 @@
     "dependencies": {
         "cal-heatmap": ">=3.5.2",
         "moment": ">=2.9.0",
-        "EventDrops": "blx/EventDrops#master"
+        "EventDrops": "blx/EventDrops#master",
+        "leaflet.heat": "Leaflet/Leaflet.heat#gh-pages"
     }
 }
