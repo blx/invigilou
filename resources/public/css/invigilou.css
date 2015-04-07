@@ -9,14 +9,25 @@ body {
 }
 h1 {
     font-size: 2.5em;
+    text-align: center;
 }
 h1 span {
     font-size: 0.7em;
     color: #777;
 }
 
+#controls {
+    margin-top: 10px;
+    padding-left: 30px;
+}
+#controls input[type=text] {
+    padding: 3px 7px;
+    font-size: 14px;
+}
+
+
 #map {
-    height: 700px;
+    height: 670px;
     width: 930px;
     margin: 20px auto 0;
 }

@@ -8,8 +8,8 @@ html(lang="en")
         script(src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js")
 
         script(src="/js/lib/d3/d3.min.js")
-        link(rel="stylesheet", href="/js/lib/cal-heatmap/cal-heatmap.css")
-        script(src="/js/lib/cal-heatmap/cal-heatmap.min.js")
+        //link(rel="stylesheet", href="/js/lib/cal-heatmap/cal-heatmap.css")
+        //script(src="/js/lib/cal-heatmap/cal-heatmap.min.js")
         script(src="/js/lib/moment/moment.js")
         script(src="/js/lib/EventDrops/src/eventDrops.js")
 
@@ -18,11 +18,13 @@ html(lang="en")
         script(src="/js/lib/leaflet-heat.js")
     body
         h1 Invigiloù:
-            span Where & when are exams?
+            span When & Where are Exams?
 
         #cal-heatmap
 
         #times
+
+        #controls
 
 
         script.
@@ -46,6 +48,10 @@ html(lang="en")
             */
 
         #map
+
+        p.
+            by <a href="http://bencook.ca">ben cook</a> / 
+            <a href="https://github.com/blx/invigilou">on github</a>
 
 
         //h2 It's #{time} on #{date}.

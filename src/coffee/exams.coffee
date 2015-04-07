@@ -1,5 +1,11 @@
 exams = ( (self) ->
 
+    makeControls = (parentdiv) ->
+        panel = d3.select parentdiv
+        panel.append 'input'
+            .attr 'type', 'text'
+            .attr 'placeholder', "filter by..."
+
     self.doTime = (parentdiv) ->
         self.baserange = [
             self._exams[0].datetime
@@ -96,10 +102,12 @@ exams = ( (self) ->
             x.datetime = new Date x.datetime
             return
 
-        self.map.doMap('map')
+        makeControls '#controls'
+
+        self.map.doMap 'map'
         self.map.updateMap self._exams
 
-        self.doTime('#times')
+        self.doTime '#times'
 
     self
 ) (window.exams || {})
