@@ -21,9 +21,11 @@
                        [moment "2.9.0"]
                        [EventDrops "blx/EventDrops#master"]]
   :bower {:directory "resources/public/js/lib"}
+  :release-tasks [["bower" "install"]
+                  ["coffee"]]
   :lein-coffee
-  {:compile-hook true
-   :jar-hook true
+  {;:compile-hook true
+   ;:jar-hook true
    :coffee-version "1.9.0"
    :coffee {:sources ["src/coffee/exams.coffee"]
             :output "resources/public/js"
