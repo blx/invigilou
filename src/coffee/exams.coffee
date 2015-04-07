@@ -36,9 +36,9 @@ exams = ( (self) ->
             tiles = L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
                         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             self.map = L.map parentdiv,
-                center: [49.2651, -123.2522]
-                zoom: 15
-                layers: [tiles]
+                             center: [49.2651, -123.2522]
+                             zoom: 15
+                             layers: [tiles]
 
             mapcontrol = L.control.layers {}, {}
                 .addTo self.map
@@ -73,10 +73,11 @@ exams = ( (self) ->
                 .addTo self.map
 
             if markerlayer?
-                self.map.removeLayer markerlayer
-                mapcontrol.removeLayer markerlayer
-            markerlayer = L.layerGroup(markers).addTo(self.map)
-            mapcontrol.addOverlay markerlayer, "Markers"
+                markerlayer.clearLayers()
+                markerlayer.addLayer m for m in markers
+            else
+                markerlayer = L.layerGroup(markers).addTo self.map
+                mapcontrol.addOverlay markerlayer, "Markers"
 
             return
         self
