@@ -70,3 +70,8 @@ h1 span {
 #times .line circle {
     opacity: 0.1;
 }
+
+.line {
+    fill: none;
+    stroke-width: 1.5px;
+}

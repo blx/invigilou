@@ -1,4 +1,5 @@
 (ns invigilou.handler
+  (:use [clojure.string :only [split]])
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.adapter.jetty :as jetty]
@@ -111,6 +112,22 @@
   (println s)
   s)
 
+(defn coursecode2year
+  "Eg., return 3 when given \"ASIA 342 001\"."
+  [cc]
+  (-> cc
+      echo
+      (split , #"[A-Z\s]+" 3) ; yields eg. ["" "342" "001"]
+      second
+      first
+      str
+      Integer/parseInt))
+
+(defn addyear
+  [exams]
+  (let [wrapper #(assoc % :year (coursecode2year (:coursecode %)))]
+    (map wrapper exams)))
+
 (defn next-exams
   "Get all exams at the next `N` > 0 exam times after `after`. Eg., if
   now is 07:00 and next exam times are 08:30, 12:00, 15:30, etc., and
@@ -154,7 +171,7 @@
   (jade/render "index.jade"
                {:time (.format timefmt now)
                 :date (str (.format datefmt now) (ordinal-suffix (.getDate now)))
-                :exams (cheshire/encode (next-exams "now" 999))})))
+                :exams (cheshire/encode (addyear (next-exams "now" 999)))})))
 
 (defroutes app-routes
   (GET "/sis/:code" [code] (building-address code))

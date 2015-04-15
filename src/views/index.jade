@@ -24,32 +24,12 @@ html(lang="en")
         h1 Invigiloù:
             span When & Where are Exams?
 
-        #cal-heatmap
+        //#cal-heatmap
 
         #times
-
         #controls
 
-
-        script.
-            /*
-            var cal = new CalHeatMap();
-            cal.init({
-                data: "/api/calendar",
-                domain: "day",
-                start: new Date(2015, 3, 14),
-                range: 16,
-                itemName: "exam",
-                afterLoadData: function(data) {
-                    return Object.getOwnPropertyNames(data).reduce(
-                        function(acc, current) {
-                            // timezones be fucky, see https://github.com/kamisama/cal-heatmap/issues/122
-                            acc[+current + (new Date(current*1000)).getTimezoneOffset()*60] = data[current];
-                            return acc;
-                        }, {});
-                    }
-            });
-            */
+        #years
 
         #map
 
@@ -57,8 +37,6 @@ html(lang="en")
             by <a href="http://bencook.ca">ben cook</a> / 
             <a href="https://github.com/blx/invigilou">on github</a>
 
-
-        //h2 It's #{time} on #{date}.
         script
             (window.exams = window.exams || {})._exams = !{exams};
 

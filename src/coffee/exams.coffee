@@ -32,6 +32,85 @@ exams = ( (self) ->
                 self.map.updateFromScale self.baserange, self._exams
         return
 
+    self.doYears = (parentdiv, exams) ->
+        width = 930
+        height = 350
+
+        x = d3.scale.linear()
+            .range [0, width]
+        y = d3.scale.linear()
+            .range [height, 0]
+
+        color = d3.scale.category10()
+
+        xAxis = d3.svg.axis()
+            .scale x
+            .orient "bottom"
+
+        yAxis = d3.svg.axis()
+            .scale y
+            .orient "left"
+
+        line = d3.svg.line()
+            .interpolate "basis"
+            .x (d) -> x d.datetime
+            .y (d) -> y d.count
+
+        svg = d3.select parentdiv
+            .append "svg"
+            .attr "width", width
+            .attr "height", height
+            .append "g"
+        
+        # load data
+        data = _(exams).chain()
+            .groupBy "year"
+            .map (group, yr) ->
+                year: +yr
+                values: _(group).chain()
+                            .countBy "datetime"
+                            .map (val, dt) ->
+                                datetime: new Date dt
+                                count: val
+                            .value()
+            .value()
+        console.log data
+        window.ben = data
+
+        x.domain d3.extent exams, (d) -> d.datetime
+        y.domain [0, d3.max data, (d) -> d3.max d.values, (d) -> d.count]
+        color.domain d3.keys data
+
+        svg.append "g"
+            .attr "class", "x axis"
+            .attr "transform", "translate(0,#{height})"
+            .call xAxis
+
+        svg.append "g"
+            .attr "class", "y axis"
+            .call yAxis
+
+        courseyear = svg.selectAll ".courseyear"
+            .data data
+          .enter().append "g"
+            .attr "class", "courseyear"
+
+        courseyear.append "path"
+            .attr "class", "line"
+            .attr "d", (d) -> line d.values
+            .style "stroke", (d) -> color d.year
+
+        courseyear.append "text"
+            .datum (d) ->
+                name: d.year
+                value: d.values[d.values.length - 1]
+            .attr "transform", (d) -> "translate(#{x d.value.datetime},#{y d.value.count})"
+            .attr "x", 3
+            .attr "dy", ".35em"
+            .text (d) -> d.name
+        
+        
+
 
     self.map = ((self) ->
         markerlayer = null
@@ -91,7 +170,6 @@ exams = ( (self) ->
             return
         self
     ) {}
-        
 
 
     self.init = ->
@@ -102,12 +180,13 @@ exams = ( (self) ->
             x.datetime = new Date x.datetime
             return
 
+        self.doTime '#times'
         makeControls '#controls'
+
+        self.doYears '#years', self._exams
 
         self.map.doMap 'map'
         self.map.updateMap self._exams
-
-        self.doTime '#times'
 
     self
 ) (window.exams || {})
