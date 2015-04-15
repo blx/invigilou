@@ -5,21 +5,38 @@ the date range to adjust the time window seen in the map.
 
 See on [Heroku](https://invigilou.herokuapp.com)!
 
-## Prerequisites
+## Dependencies
 
-You will need [Leiningen][] 2.0.0 or above installed.
+### Backend
 
-We also use leiningen wrappers for Coffeescript, Jade, and Bower.
+The server code is in Clojure. You will need [Leiningen][] 2.0.0 or above 
+installed.
 
-Check out `profile.clj` for the lowdown on dependencies. Not listed there is
-[Leaflet.heat][].
+Check out `project.clj` for the lowdown on Clojure dependencies.
 
 [leiningen]: https://github.com/technomancy/leiningen
-[Leaflet.heat]: https://github.com/Leaflet/Leaflet.heat
 
-## (Setup) Fetching data
+### Frontend
 
-*To get exam schedule info:*
+Frontend code is written in Coffeescript and other libraries are managed with
+Bower. The standard install process for both of these is via NPM, the Node.js
+package manager. If you have none of this installed, first install Node and then
+run `npm install` in the invigilou directory.
+
+If you already have Bower installed, just run `bower install` to install the
+front-end libraries.
+
+### Building the database (optional)
+
+The exam- and building-database is already included as `data/exam-schedule.sqlite`,
+but it can be rebuilt by doing the following:
+
+0. Install Python and pip, if not already installed. Install Python dependencies:
+```
+$ pip install pyquery
+```
+
+1. Get exam schedule info:
 ```
 $ cd data
 $ python
@@ -30,7 +47,7 @@ $ python
 >>> exit()
 ```
 
-*To get building info:*
+2. Get building info:
 
 Uncomment the `/createdb` and `/fetchaddresses` routes in
 `src/invigilou/handler.clj`.
@@ -42,14 +59,25 @@ $ lein ring server-headless
 Now navigate to `localhost:3000/createdb` followed by
 `localhost:3000/fetchaddresses`.
 
-This data now lives in data/exam-schedule.sqlite, which could've been stashed in the repo,
-but honestly... binaries? in my repo? tsk tsk
 
-## Building assets
+## Recompiling Coffeescript
 
 If you watch your coffee closely enough, it will turn into Javascript:
 ```
-$ lein coffee watch
+$ coffee -o resources/public/js/ -cw src/coffee/
+```
+
+## Running
+
+For development, with auto-reload on change of Clojure files:
+```
+$ lein ring server-headless
+```
+
+Compiled (as on Heroku), in the Jetty server:
+```
+$ lein with-profile uberjar uberjar
+$ java -cp target/invigilou-standalone.jar clojure.main -m invigilou.handler
 ```
 
 ## License
