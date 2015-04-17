@@ -1,5 +1,5 @@
 body {
-    font-family: Helvetica Neue, Helvetica, sans-serif;
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
     font-size: 12px;
     width: 930px;
     margin: 0 auto;
@@ -15,6 +15,14 @@ h1 {
 h1 span {
     font-size: 0.7em;
     color: #777;
+}
+
+.charttitle {
+    font-family: HelveticaNeue-Light, "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: -10px;
+    margin-top: 12px;
 }
 
 #controls {
