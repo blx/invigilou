@@ -178,12 +178,13 @@ exams = ( (self) ->
             seen = []
             for x in exams
                 # Collect all [lat, lon]s and make markers for each unique building.
-                continue if not (x.lat? and x.lng?)
-                latlngs.push [x.lat, x.lng]
+                bldg = self._buildings[x.shortcode]
+                continue if not (bldg?.lat? and bldg?.lng?)
+                latlngs.push [bldg.lat, bldg.lng]
 
                 continue if x.shortcode in seen
                 seen.push x.shortcode
-                markers.push L.marker([x.lat, x.lng]).bindPopup "#{x.building}: #{lox[x.building]}"
+                markers.push L.marker([bldg.lat, bldg.lng]).bindPopup "#{bldg.name}: #{lox[x.building]}"
 
             if @heatlayer?
                 @heatlayer.setLatLngs latlngs
@@ -213,7 +214,7 @@ exams = ( (self) ->
             x.coursecode = x.c
             x.shortcode = x.s
 
-            x.building = self._exams.buildings[x.shortcode]
+            #x.building = self._exams.buildings[x.shortcode]
             x.datetime = new Date x.d * 1000
 
             delete x.y
@@ -221,6 +222,7 @@ exams = ( (self) ->
             delete x.s
             delete x.d
             return
+        self._buildings = self._exams.buildings
         self._exams = self._exams.exams
         
 

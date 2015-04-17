@@ -164,13 +164,16 @@
 
 (defn hashbuildings [exams]
   {:exams exams
-   :buildings (sql/query db
-                         ["SELECT DISTINCT s.building as code,
-                              ifnull(b.name, s.building) as name,
-                              b.lat,
-                              b.lng
-                           FROM schedule_2014w2 s
-                           LEFT JOIN buildings b ON b.code = s.building"])})
+   :buildings (reduce #(assoc %1 (keyword (:code %2))
+                                 (dissoc %2 :code))
+                      {}
+                      (sql/query db
+                                 ["SELECT DISTINCT s.building as code,
+                                    ifnull(b.name, s.building) as name,
+                                    b.lat,
+                                    b.lng
+                                  FROM schedule_2014w2 s
+                                  LEFT JOIN buildings b ON b.code = s.building"]))})
 
 (defn home-data []
   (-> (next-exams "now" 999)
