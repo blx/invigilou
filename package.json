@@ -13,7 +13,7 @@
         "uglifyjs": "mishoo/UglifyJS2"
     },
     "scripts": {
-        "postinstall": "bower install && npm build",
+        "postinstall": "bower install && npm run build",
         "coffee": "coffee --compile --output resources/public/js/ src/coffee/",
         "uglify": "uglifyjs resources/public/js/exams.js --compress --mangle --preamble '\n/* https://github.com/blx/invigilou\n   (c) 2015 Ben Cook\n*/' -r '_,L,d3,' -o resources/public/js/exams.js",
         "concat": "cd resources/public/js && cat lib/EventDrops/src/eventDrops.js lib/leaflet.heat/dist/leaflet-heat.js exams.js > exams.min.js_ && mv exams.min.js_ exams.min.js",
