@@ -54,6 +54,7 @@ h1 span {
     cursor: pointer;
 }
 
+.axis,
 .y-axis path,
 .y-axis line,
 .x-axis path,

@@ -116,7 +116,6 @@
   "Eg., return 3 when given \"ASIA 342 001\"."
   [cc]
   (-> cc
-      echo
       (split , #"[A-Z\s]+" 3) ; yields eg. ["" "342" "001"]
       second
       first

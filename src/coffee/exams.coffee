@@ -1,115 +1,148 @@
 exams = ( (self) ->
 
+    self.domain = []
+
     makeControls = (parentdiv) ->
         panel = d3.select parentdiv
-        panel.append 'input'
-            .attr 'type', 'text'
-            .attr 'placeholder', "filter by..."
+        panel.append "input"
+            .attr "type", "text"
+            .attr "placeholder", "filter by..."
 
-    self.doTime = (parentdiv) ->
-        self.baserange = [
-            self._exams[0].datetime
-            self._exams[self._exams.length-1].datetime]
+    self.doTime = (parentdiv, onzoom) ->
+        baserange = [self._exams[0].datetime,
+                     self._exams[self._exams.length-1].datetime]
+        self.domain = baserange
+
         chart = d3.chart.eventDrops()
             .width 930
             .margin
                 top: 70, left: 30, bottom: 0, right: 30
-            .start self.baserange[0]
-            .end self.baserange[1]
+            .start baserange[0]
+            .end baserange[1]
             .hasLabels false
-            .eventZoom _.debounce ((scl) -> self.map.updateFromScale scl, self._exams),
-                                  150
+            .eventZoom _.debounce onzoom, 150
+
         d3.select parentdiv
-            .datum [{name: 'exams', dates: _(self._exams).pluck('datetime')}]
+            .datum [{name: "exams", dates: _(self._exams).pluck("datetime")}]
             .call chart
         
+        ###
         d3.select parentdiv
-            .append 'p'
+            .append "p"
             .text "(restore full range)"
-            .attr 'class', 'rightbutton'
+            .attr "class", "rightbutton"
             .on "click", ->
                 # TODO need to force update of zoom on eventdrops
-                self.map.updateFromScale self.baserange, self._exams
+                self.map.updateFromScale baserange, self._exams
+        ###
+
         return
 
-    self.doYears = (parentdiv, exams) ->
-        width = 930
-        height = 350
+    class Years
+        constructor: (exams) ->
+            @data = exams
+            @x = d3.scale.linear()
+            @y = d3.scale.linear()
+            @color = d3.scale.category10()
 
-        x = d3.scale.linear()
-            .range [0, width]
-        y = d3.scale.linear()
-            .range [height, 0]
+            @xAxis = d3.svg.axis()
+                .scale @x
+                .orient "bottom"
+            @yAxis = d3.svg.axis()
+                .scale @y
+                .orient "left"
 
-        color = d3.scale.category10()
+            @line = d3.svg.line()
+                .interpolate "basis"
+                .x (d) -> @x d.datetime
+                .y (d) -> @y d.count
 
-        xAxis = d3.svg.axis()
-            .scale x
-            .orient "bottom"
+        init: (parentdiv) ->
+            @margin = 
+                top: 0
+                left: 30
+                right: 30
+                bottom: 20
+            @width = 930 - @margin.left - @margin.right
+            @height = 250 - @margin.top - @margin.bottom
 
-        yAxis = d3.svg.axis()
-            .scale y
-            .orient "left"
+            @x.range [0, @width]
+            @y.range [@height, 0]
 
-        line = d3.svg.line()
-            .interpolate "basis"
-            .x (d) -> x d.datetime
-            .y (d) -> y d.count
+            @svg = d3.select parentdiv
+                .append "svg"
+                .attr "width", @width + @margin.left + @margin.right
+                .attr "height", @height + @margin.top + @margin.bottom
+              .append "g"
+                .attr "transform", "translate(#{@margin.left},#{@margin.top})"
 
-        svg = d3.select parentdiv
-            .append "svg"
-            .attr "width", width
-            .attr "height", height
-            .append "g"
-        
-        # load data
-        data = _(exams).chain()
-            .groupBy "year"
-            .map (group, yr) ->
-                year: +yr
-                values: _(group).chain()
-                            .countBy "datetime"
-                            .map (val, dt) ->
-                                datetime: new Date dt
-                                count: val
-                            .value()
-            .value()
-        console.log data
-        window.ben = data
+            @gx = @svg.append "g"
+                .attr "class", "x axis"
+                .attr "transform", "translate(0,#{@height})"
 
-        x.domain d3.extent exams, (d) -> d.datetime
-        y.domain [0, d3.max data, (d) -> d3.max d.values, (d) -> d.count]
-        color.domain d3.keys data
+            @gy = @svg.append "g"
+                .attr "class", "y axis"
 
-        svg.append "g"
-            .attr "class", "x axis"
-            .attr "transform", "translate(0,#{height})"
-            .call xAxis
+            @data = Years.preprocessor @data
 
-        svg.append "g"
-            .attr "class", "y axis"
-            .call yAxis
+            @y.domain [0, d3.max @data,
+                                 (d) -> d3.max d.values,
+                                               (d) -> d.count]
+            @color.domain d3.keys @data
 
-        courseyear = svg.selectAll ".courseyear"
-            .data data
-          .enter().append "g"
-            .attr "class", "courseyear"
+            @redraw()
 
-        courseyear.append "path"
-            .attr "class", "line"
-            .attr "d", (d) -> line d.values
-            .style "stroke", (d) -> color d.year
+        redraw: ->
+            data = Years.filter self.domain, @data
+            @render data
 
-        courseyear.append "text"
-            .datum (d) ->
-                name: d.year
-                value: d.values[d.values.length - 1]
-            .attr "transform", (d) -> "translate(#{x d.value.datetime},#{y d.value.count})"
-            .attr "x", 3
-            .attr "dy", ".35em"
-            .text (d) -> d.name
-        
-        
+        @preprocessor: (data) ->
+            _(data).chain()
+                .groupBy "year"
+                .map (group, yr) ->
+                    year: +yr
+                    values: _(group).chain()
+                                .countBy "datetime"
+                                .map (val, dt) ->
+                                    datetime: new Date dt
+                                    count: val
+                                .value()
+                .value()
+
+        @filter: (domain, data) ->
+            _(data).map (group) ->
+                year: group.year
+                values: _(group.values).filter (d) ->
+                    d.datetime - self.domain[0] >= 0 and
+                    self.domain[1] - d.datetime >= 0
+
+        render: (data) ->
+            @x.domain self.domain
+
+            @gx.call @xAxis
+            @gy.call @yAxis
+
+            @svg.selectAll ".courseyear"
+                .remove()
+
+            courseyear = @svg.selectAll ".courseyear"
+                .data data
+              .enter().append "g"
+                .attr "class", "courseyear"
+
+            courseyear.append "path"
+                .attr "class", "line"
+                .attr "d", (d) => @line d.values
+                .style "stroke", (d) => @color d.year
+
+            courseyear.append "text"
+                .datum (d) ->
+                    name: d.year
+                    value: d.values[d.values.length - 1]
+                .attr "transform", (d) => "translate(#{@x d.value.datetime},#{@y d.value.count})"
+                .attr "x", 3
+                .attr "dy", ".35em"
+                .text (d) -> d.name
 
 
     self.map = ((self) ->
@@ -180,13 +213,20 @@ exams = ( (self) ->
             x.datetime = new Date x.datetime
             return
 
-        self.doTime '#times'
+        ontimezoom = (newscale) ->
+            self.domain = newscale.domain()
+            self.map.updateFromScale newscale, self._exams
+            self.years.redraw()
+
+        self.doTime '#times', ontimezoom
         makeControls '#controls'
 
-        self.doYears '#years', self._exams
+        self.years = new Years self._exams
+        self.years.init '#years'
 
         self.map.doMap 'map'
         self.map.updateMap self._exams
+        return
 
     self
 ) (window.exams || {})
