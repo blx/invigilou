@@ -3,7 +3,7 @@
 When and where do exams happen? idk let's find out. Scroll or drag with your mouse on top of
 the date range to adjust the time window seen in the map.
 
-Check it out at <invigilou.bencook.ca>!
+Check it out at [invigilou.bencook.ca](http://invigilou.bencook.ca)!
 
 ## Dependencies
 
