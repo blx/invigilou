@@ -208,9 +208,21 @@ exams = ( (self) ->
         #n = document.getElementById("nextexams")
         #n.innerHTML = moment(n.innerHTML, "YYYY-MM-DD HH:mm:ss").fromNow() + "."
 
-        _(self._exams).each (x) ->
-            x.datetime = new Date x.datetime
+        _(self._exams.exams).each (x) ->
+            x.year = x.y
+            x.coursecode = x.c
+            x.shortcode = x.s
+
+            x.building = self._exams.buildings[x.shortcode]
+            x.datetime = new Date x.d * 1000
+
+            delete x.y
+            delete x.c
+            delete x.s
+            delete x.d
             return
+        self._exams = self._exams.exams
+        
 
         ontimezoom = (newscale) ->
             self.domain = newscale.domain()

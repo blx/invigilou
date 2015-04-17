@@ -136,21 +136,48 @@
   ([after] (next-exams after 1))
   ([after N]
    (sql/query db
-              ["SELECT
-                   ifnull(b.name, s.building) as building,
-                   s.coursecode,
-                   s.datetime,
-                   s.building as shortcode,
-                   b.lat,
-                   b.lng
-               FROM schedule_2014w2 s
+              [(str "SELECT "
+                   ;ifnull(b.name, s.building) as building,
+                   "s.coursecode,
+                   strftime('%s', s.datetime) as datetime,
+                   s.building as shortcode "
+                   ;b.lat,
+                   ;b.lng
+               "FROM schedule_2014w2 s
                JOIN (SELECT datetime FROM schedule_2014w2
                      WHERE datetime >= datetime(?)
                      GROUP BY datetime LIMIT ?) f
                     ON f.datetime = s.datetime
                LEFT JOIN buildings b ON b.code = s.building
-               ORDER BY s.datetime, coursecode"
+               ORDER BY s.datetime, coursecode")
                after N])))
+
+(defn keyshrinker [exams]
+  (map #(clojure.set/rename-keys % {;:building :b
+                                    :coursecode :c
+                                    :datetime :d
+                                    :shortcode :s
+                                    ;:lat :t
+                                    ;:lng :g
+                                    :year :y})
+       exams))
+
+(defn hashbuildings [exams]
+  {:exams exams
+   :buildings (sql/query db
+                         ["SELECT DISTINCT s.building as code,
+                              ifnull(b.name, s.building) as name,
+                              b.lat,
+                              b.lng
+                           FROM schedule_2014w2 s
+                           LEFT JOIN buildings b ON b.code = s.building"])})
+
+(defn home-data []
+  (-> (next-exams "now" 999)
+      addyear
+      keyshrinker
+      hashbuildings
+      cheshire/encode))
 
 (defn ordinal-suffix
   "Ordinal suffix for days-of-month"
@@ -164,13 +191,8 @@
       "th")))
 
 (defn render-home [req]
-  (let [now (java.util.Date.)
-        timefmt (java.text.SimpleDateFormat. "K:mm a")
-        datefmt (java.text.SimpleDateFormat. "EEEE, MMMM d")]
   (jade/render "index.jade"
-               {:time (.format timefmt now)
-                :date (str (.format datefmt now) (ordinal-suffix (.getDate now)))
-                :exams (cheshire/encode (addyear (next-exams "now" 999)))})))
+                {:exams (home-data)}))
 
 (defroutes app-routes
   (GET "/sis/:code" [code] (building-address code))
