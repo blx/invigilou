@@ -61,8 +61,8 @@ exams = ( (self) ->
                 .y (d) -> @y d.count
 
         init: (parentdiv) ->
-            @margin = 
-                top: 0
+            @margin =
+                top: 5
                 left: 30
                 right: 30
                 bottom: 20
