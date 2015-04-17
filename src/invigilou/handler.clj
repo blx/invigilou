@@ -124,7 +124,8 @@
 
 (defn addyear
   [exams]
-  (let [wrapper #(assoc % :year (coursecode2year (:coursecode %)))]
+  (let [wrapper #(-> % (assoc , :year (coursecode2year (:coursecode %)))
+                       (dissoc , :coursecode))]
     (map wrapper exams)))
 
 (defn next-exams
@@ -139,7 +140,7 @@
               [(str "SELECT "
                    ;ifnull(b.name, s.building) as building,
                    "s.coursecode,
-                   strftime('%s', s.datetime) as datetime,
+                   cast(strftime('%s', s.datetime) as integer) as datetime,
                    s.building as shortcode "
                    ;b.lat,
                    ;b.lng
