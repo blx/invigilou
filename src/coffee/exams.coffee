@@ -1,6 +1,9 @@
 exams = ( (self) ->
 
     self.domain = []
+    inDomain = (d) ->
+        self.domain[1] - d.datetime >= 0 and
+        d.datetime - self.domain[0] >= 0
 
     makeControls = (parentdiv) ->
         panel = d3.select parentdiv
@@ -22,7 +25,7 @@ exams = ( (self) ->
             .start baserange[0]
             .end baserange[1]
             .hasLabels false
-            .eventZoom _.debounce onzoom, 150
+            .eventZoom _.debounce onzoom, 80
 
         d3.select parentdiv
             .datum [{name: "exams", dates: _(self._exams).pluck("datetime")}]
@@ -117,9 +120,7 @@ exams = ( (self) ->
         @filter: (domain, data) ->
             _(data).map (group) ->
                 year: group.year
-                values: _(group.values).filter (d) ->
-                    d.datetime - self.domain[0] >= 0 and
-                    self.domain[1] - d.datetime >= 0
+                values: _(group.values).filter inDomain
 
         render: (data) ->
             @x.domain self.domain
@@ -151,32 +152,29 @@ exams = ( (self) ->
                 .text (d) -> d.name
 
 
-    self.map = ((self) ->
-        markerlayer = null
-        heatlayer = null
-        mapcontrol = null
+    class Map
+        constructor: (exams, parentdiv) ->
+            @exams = exams
+            @markerlayer = null
+            @heatlayer = null
 
-        self.doMap = (parentdiv) ->
             tiles = L.tileLayer '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            self.map = L.map parentdiv,
-                             center: [49.2651, -123.2522]
-                             zoom: 15
-                             layers: [tiles]
+                                attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            @map = L.map parentdiv,
+                         center: [49.2651, -123.2522]
+                         zoom: 15
+                         layers: [tiles]
 
-            mapcontrol = L.control.layers {}, {}
-                .addTo self.map
-            self.map
-        
-        self.updateFromScale = (scale, exams) ->
-            self.updateMap _(exams).filter (x) ->
-                if scale.domain?
-                    scale.domain()[0] <= x.datetime <= scale.domain()[1]
-                else
-                    scale[0] <= x.datetime <= scale[1]
+            @mapcontrol = L.control.layers {}, {}
+                .addTo @map
 
-        self.updateMap = (exams) ->
-            return unless mapcontrol?
+        filter: (exams) ->
+            _(exams).filter inDomain
+
+        render: ->
+            exams = @filter @exams
+
+            return unless @mapcontrol?
             lox = _(exams).countBy 'building'
             latlngs = []
             markers = []
@@ -190,25 +188,23 @@ exams = ( (self) ->
                 seen.push x.shortcode
                 markers.push L.marker([x.lat, x.lng]).bindPopup "#{x.building}: #{lox[x.building]}"
 
-            if heatlayer?
-                heatlayer.setLatLngs latlngs
+            if @heatlayer?
+                @heatlayer.setLatLngs latlngs
             else
-                heatlayer = L.heatLayer latlngs,
-                                        radius: 25
-                                        minOpacity: .2
-                                        max: 1.1
-                    .addTo self.map
+                @heatlayer = L.heatLayer latlngs,
+                                         radius: 25
+                                         minOpacity: .2
+                                         max: 1.1
+                    .addTo @map
 
-            if markerlayer?
-                markerlayer.clearLayers()
-                markerlayer.addLayer m for m in markers
+            if @markerlayer?
+                @markerlayer.clearLayers()
+                @markerlayer.addLayer m for m in markers
             else
-                markerlayer = L.layerGroup(markers).addTo self.map
-                mapcontrol.addOverlay markerlayer, "Markers"
+                @markerlayer = L.layerGroup(markers).addTo @map
+                @mapcontrol.addOverlay @markerlayer, "Markers"
 
             return
-        self
-    ) {}
 
 
     self.init = ->
@@ -221,7 +217,7 @@ exams = ( (self) ->
 
         ontimezoom = (newscale) ->
             self.domain = newscale.domain()
-            self.map.updateFromScale newscale, self._exams
+            self.map.render()
             self.years.redraw()
 
         doTime '#times', ontimezoom
@@ -230,8 +226,8 @@ exams = ( (self) ->
         self.years = new Years self._exams
         self.years.init '#years'
 
-        self.map.doMap 'map'
-        self.map.updateMap self._exams
+        self.map = new Map self._exams, 'map'
+        self.map.render()
         return
 
     self

@@ -10,6 +10,7 @@ body {
 h1 {
     font-size: 2.5em;
     text-align: center;
+    margin-bottom: 11px;
 }
 h1 span {
     font-size: 0.7em;
@@ -48,13 +49,18 @@ h1 span {
 #times .times-exam-count {
     font-size: 16px;
 }
+.delimiter .start,
+.delimiter .end {
+    fill: #777;
+}
 
 .zoom {
     fill: transparent;
     cursor: pointer;
 }
 
-.axis,
+.axis line,
+.axis path,
 .y-axis path,
 .y-axis line,
 .x-axis path,
