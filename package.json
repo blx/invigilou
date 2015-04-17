@@ -15,7 +15,7 @@
     "scripts": {
         "postinstall": "bower install && npm run coffee && npm run uglify",
         "coffee": "coffee --compile --output resources/public/js/ src/coffee/",
-        "uglify": "uglifyjs resources/public/js/exams.js --compress --mangle --preamble '/* https://github.com/blx/invigilou\n   (c) 2015 Ben Cook\n*/' -r '_,L,d3,' -o resources/public/js/exams.min.js"
+        "uglify": "uglifyjs resources/public/js/exams.js --compress --mangle --preamble '/* https://github.com/blx/invigilou\n   (c) 2015 Ben Cook\n*/' -r '_,L,d3,' -o resources/public/js/exams.js"
     }
 }
 

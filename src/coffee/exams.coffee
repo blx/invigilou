@@ -2,8 +2,8 @@ exams = ( (self) ->
 
     self.domain = []
     inDomain = (d) ->
-        self.domain[1] - d.datetime >= 0 and
-        d.datetime - self.domain[0] >= 0
+        d.datetime - self.domain[0] >= 0 and
+        self.domain[1] - d.datetime >= 0
 
     makeControls = (parentdiv) ->
         panel = d3.select parentdiv
@@ -44,7 +44,7 @@ exams = ( (self) ->
         return
 
     class Years
-        constructor: (exams) ->
+        constructor: (exams, parentdiv) ->
             @data = exams
             @x = d3.scale.linear()
             @y = d3.scale.linear()
@@ -63,7 +63,6 @@ exams = ( (self) ->
                 .x (d) -> @x d.datetime
                 .y (d) -> @y d.count
 
-        init: (parentdiv) ->
             @margin =
                 top: 5
                 left: 30
@@ -96,11 +95,7 @@ exams = ( (self) ->
                                                (d) -> d.count]
             @color.domain d3.keys @data
 
-            @redraw()
-
-        redraw: ->
-            data = Years.filter self.domain, @data
-            @render data
+            @render()
 
         @preprocessor: (data) ->
             _(data).chain()
@@ -122,7 +117,9 @@ exams = ( (self) ->
                 year: group.year
                 values: _(group.values).filter inDomain
 
-        render: (data) ->
+        render: ->
+            data = Years.filter self.domain, @data
+
             @x.domain self.domain
 
             @gx.call @xAxis
@@ -218,13 +215,13 @@ exams = ( (self) ->
         ontimezoom = (newscale) ->
             self.domain = newscale.domain()
             self.map.render()
-            self.years.redraw()
+            self.years.render()
 
         doTime '#times', ontimezoom
         makeControls '#controls'
 
-        self.years = new Years self._exams
-        self.years.init '#years'
+        self.years = new Years self._exams, '#years'
+        self.years.render()
 
         self.map = new Map self._exams, 'map'
         self.map.render()
