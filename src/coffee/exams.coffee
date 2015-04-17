@@ -4,11 +4,13 @@ exams = ( (self) ->
 
     makeControls = (parentdiv) ->
         panel = d3.select parentdiv
+        ###
         panel.append "input"
             .attr "type", "text"
             .attr "placeholder", "filter by..."
+        ###
 
-    self.doTime = (parentdiv, onzoom) ->
+    doTime = (parentdiv, onzoom) ->
         baserange = [self._exams[0].datetime,
                      self._exams[self._exams.length-1].datetime]
         self.domain = baserange
@@ -48,6 +50,7 @@ exams = ( (self) ->
             @xAxis = d3.svg.axis()
                 .scale @x
                 .orient "bottom"
+                .tickFormat ""
             @yAxis = d3.svg.axis()
                 .scale @y
                 .orient "left"
@@ -64,7 +67,7 @@ exams = ( (self) ->
                 right: 30
                 bottom: 20
             @width = 930 - @margin.left - @margin.right
-            @height = 250 - @margin.top - @margin.bottom
+            @height = 200 - @margin.top - @margin.bottom
 
             @x.range [0, @width]
             @y.range [@height, 0]
@@ -107,6 +110,8 @@ exams = ( (self) ->
                                     datetime: new Date dt
                                     count: val
                                 .value()
+                .filter (d) ->
+                    1 <= d.year <= 4
                 .value()
 
         @filter: (domain, data) ->
@@ -134,6 +139,7 @@ exams = ( (self) ->
                 .attr "class", "line"
                 .attr "d", (d) => @line d.values
                 .style "stroke", (d) => @color d.year
+                .style "stroke-width", (d) -> d.year * 0.8
 
             courseyear.append "text"
                 .datum (d) ->
@@ -218,7 +224,7 @@ exams = ( (self) ->
             self.map.updateFromScale newscale, self._exams
             self.years.redraw()
 
-        self.doTime '#times', ontimezoom
+        doTime '#times', ontimezoom
         makeControls '#controls'
 
         self.years = new Years self._exams
