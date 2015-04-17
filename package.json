@@ -9,10 +9,13 @@
     "repository": "blx/invigilou",
     "dependencies": {
         "bower": ">=1.3.12",
-        "coffee-script": ">=1.9.1"
+        "coffee-script": ">=1.9.1",
+        "uglifyjs": "mishoo/UglifyJS2"
     },
     "scripts": {
-        "postinstall": "bower install && coffee --compile --output resources/public/js/ src/coffee/"
+        "postinstall": "bower install && npm run coffee && npm run uglify",
+        "coffee": "coffee --compile --output resources/public/js/ src/coffee/",
+        "uglify": "uglifyjs resources/public/js/exams.js --compress --mangle --preamble '/* https://github.com/blx/invigilou\n   (c) 2015 Ben Cook\n*/' -r '_,L,d3,' -o resources/public/js/exams.min.js"
     }
 }
 
