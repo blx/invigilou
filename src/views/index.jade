@@ -23,21 +23,22 @@ html(lang="en")
             by <a href="http://bencook.ca">ben cook</a> / 
             <a href="https://github.com/blx/invigilou">on github</a>
 
-        script(src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js")
-
-        //script(src="/js/lib/d3/d3.min.js")
+        script(src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js")
         script(src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js")
-        //link(rel="stylesheet", href="/js/lib/cal-heatmap/cal-heatmap.css")
-        //script(src="/js/lib/cal-heatmap/cal-heatmap.min.js")
-        //script(src="/js/lib/moment/moment.js")
-        script(src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js")
+        //script(src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js")
         script(src="/js/lib/EventDrops/src/eventDrops.js")
 
-        //link(rel="stylesheet", href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css")
-        //script(src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js")
         link(rel="stylesheet", href="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css")
         script(src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js")
         script(src="/js/lib/leaflet.heat/dist/leaflet-heat.js")
+
+        //-
+            script(src="/js/lib/d3/d3.min.js")
+            link(rel="stylesheet", href="/js/lib/cal-heatmap/cal-heatmap.css")
+            script(src="/js/lib/cal-heatmap/cal-heatmap.min.js")
+            script(src="/js/lib/moment/moment.js")
+            link(rel="stylesheet", href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css")
+            script(src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js")
 
         script
             (window.exams = window.exams || {})._exams = !{exams};
