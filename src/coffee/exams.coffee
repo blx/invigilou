@@ -2,6 +2,8 @@ exams = ( (self) ->
 
     self.domain = []
     inDomain = (d) ->
+        # Cannot just do s[0] <= d.dt <= s[1] because
+        # equality is based on being the same object.
         d.datetime - self.domain[0] >= 0 and
         self.domain[1] - d.datetime >= 0
 
@@ -14,16 +16,12 @@ exams = ( (self) ->
         ###
 
     doTime = (parentdiv, onzoom) ->
-        baserange = [self._exams[0].datetime,
-                     self._exams[self._exams.length-1].datetime]
-        self.domain = baserange
-
         chart = d3.chart.eventDrops()
             .width 930
             .margin
                 top: 70, left: 30, bottom: 0, right: 30
-            .start baserange[0]
-            .end baserange[1]
+            .start self.domain[0]
+            .end self.domain[1]
             .hasLabels false
             .eventZoom _.debounce onzoom, 80
 
@@ -38,7 +36,7 @@ exams = ( (self) ->
             .attr "class", "rightbutton"
             .on "click", ->
                 # TODO need to force update of zoom on eventdrops
-                self.map.updateFromScale baserange, self._exams
+                self.map.updateFromScale self.domain, self._exams
         ###
 
         return
@@ -155,7 +153,7 @@ exams = ( (self) ->
             @markerlayer = null
             @heatlayer = null
 
-            tiles = L.tileLayer '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            tiles = L.tileLayer "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             @map = L.map parentdiv,
                          center: [49.2651, -123.2522]
@@ -172,7 +170,7 @@ exams = ( (self) ->
             exams = @filter @exams
 
             return unless @mapcontrol?
-            lox = _(exams).countBy 'building'
+            lox = _(exams).countBy "building"
             latlngs = []
             markers = []
             seen = []
@@ -225,19 +223,22 @@ exams = ( (self) ->
         self._buildings = self._exams.buildings
         self._exams = self._exams.exams
         
+        self.domain = [self._exams[0].datetime,
+                       self._exams[self._exams.length-1].datetime]
+
 
         ontimezoom = (newscale) ->
             self.domain = newscale.domain()
             self.map.render()
             self.years.render()
 
-        doTime '#times', ontimezoom
-        makeControls '#controls'
+        doTime "#times", ontimezoom
+        makeControls "#controls"
 
-        self.years = new Years self._exams, '#years'
+        self.years = new Years self._exams, "#years"
         self.years.render()
 
-        self.map = new Map self._exams, 'map'
+        self.map = new Map self._exams, "map"
         self.map.render()
         return
 
