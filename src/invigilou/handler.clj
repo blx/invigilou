@@ -177,7 +177,7 @@
                                   LEFT JOIN buildings b ON b.code = s.building"]))})
 
 (defn home-data []
-  (-> (next-exams "now" 999)
+  (-> (next-exams "2015-04-04" 999)
       addyear
       keyshrinker
       hashbuildings
