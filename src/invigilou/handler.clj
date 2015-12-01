@@ -1,6 +1,7 @@
 (ns invigilou.handler
-  (:use [clojure.string :only [split]])
-  (:require [compojure.core :refer :all]
+  (:require [clojure.string :as str]
+            [clojure.set :refer [rename-keys]]
+            [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.adapter.jetty :as jetty]
             [environ.core :refer [env]]
@@ -20,19 +21,19 @@
          :subname "data/exam-schedule.sqlite"})
 
 (defn- setup-db! []
-  (sql/db-do-commands db
-                      (sql/create-table-ddl :buildings
-                                            [:code :text "PRIMARY KEY"]
-                                            [:name :text]
-                                            [:address :text]
-                                            [:lat "DECIMAL(9,6)"]
-                                            [:lng "DECIMAL(9,6)"])))
+  (->>
+    (sql/create-table-ddl :buildings
+                          [:code :text "PRIMARY KEY"]
+                          [:name :text]
+                          [:address :text]
+                          [:lat "DECIMAL(9,6)"]
+                          [:lng "DECIMAL(9,6)"])
+    (sql/db-do-commands db)))
 
 (defn- geocode
   "Return lat/lng map from given address string."
   [addr]
-  (let [endpoint "https://maps.googleapis.com/maps/api/geocode/json"
-        res (http/get endpoint
+  (let [res (http/get "https://maps.googleapis.com/maps/api/geocode/json"
                       {:query-params {:address addr}})
         data (cheshire/parse-string (:body res) true)]
     (get-in data [:results 0 :geometry :location])))
@@ -49,32 +50,35 @@
       (-> b
           (#(merge % (geocode (str (:address %) ", Vancouver BC"))))
           (#(sql/update! db :buildings % ["address = ?" (:address %)]))
-          (#(println %))))))
+          println))))
 
 
+
+(def enliven-url
+  (comp html/html-resource clojure.java.io/as-url))
 
 (defn- get-addresses! []
-  (let [url "http://www.students.ubc.ca/classroomservices/buildings-and-classrooms/"
-        rows (-> (html/html-resource (clojure.java.io/as-url url))
-                 (html/select [:.dataTable :tr]))]
-    (apply sql/insert! db :buildings
-           (map #(let [tds (html/select % [:td])]
-                   {:code (-> (first tds) :content first :content first)
-                    :name (-> (second tds) :content first :content first)
-                    :address (-> (nth tds 2) :content first)})
-                rows))))
+  (let [rows (-> "http://www.students.ubc.ca/classroomservices/buildings-and-classrooms/"
+                 enliven-url
+                 (html/select [:.dataTable :tr]))
+        parse-row (fn [[code name addr]]
+                    {:code (get-in code [:content 0 :content 0])
+                     :name (get-in name [:content 0 :content 0])
+                     :address (get-in addr [:content 0])})]
+    (->> rows
+         (map #(-> (html/select [:td])
+                   parse-row))
+         (apply sql/insert! db :buildings))))
 
 (defn building-name
   "Lookup full name from SIS building shortcode"
   [code]
-  (let [res (sql/query db
-                       ["SELECT name
-                        FROM buildings
-                        WHERE code = ?"
-                        code])]
-    (if (> (count res) 0)
-      (:name (first res))
-      code)))
+  (let [[name] (sql/query db
+                          ["SELECT name
+                           FROM buildings
+                           WHERE code = ?"
+                           code])]
+    (or name code)))
 
 
 (defn- building-address
@@ -82,15 +86,9 @@
   [code]
   (let [url (str "http://www.students.ubc.ca/classroomservices/buildings-and-classrooms/"
                  "?code=" code)]
-    (-> (html/html-resource (clojure.java.io/as-url url))
+    (-> (enliven-url url)
         (html/select [:p :b])
-        first
-        :content)))
-
-(defn- find-building [code]
-  (http/get "http://www.students.ubc.ca/classroomservices/buildings-and-classrooms/"
-            {:query-params {:code code}})
-  (str "Hello " code))
+        (get-in [0 :content]))))
 
 (defn api-building-coords [code]
   (first
@@ -108,25 +106,21 @@
        (reduce #(assoc %1 (keyword (:datetime %2)) (:n %2))
                {})))
 
-(defn echo [s]
-  (println s)
-  s)
-
-(defn coursecode2year
+(defn coursecode->year
   "Eg., return 3 when given \"ASIA 342 001\"."
   [cc]
   (-> cc
-      (split , #"[A-Z\s]+" 3) ; yields eg. ["" "342" "001"]
+      (str/split #"[A-Z\s]+" 3) ; yields eg. ["" "342" "001"]
       second
       first
       str
       Integer/parseInt))
 
-(defn addyear
-  [exams]
-  (let [wrapper #(-> % (assoc , :year (coursecode2year (:coursecode %)))
-                       (dissoc , :coursecode))]
-    (map wrapper exams)))
+(defn addyear [exams]
+  (->> exams
+       (map #(-> %
+                 (update :coursecode coursecode->year)
+                 (rename-keys {:coursecode :year})))))
 
 (defn next-exams
   "Get all exams at the next `N` > 0 exam times after `after`. Eg., if
@@ -154,27 +148,30 @@
                after N])))
 
 (defn keyshrinker [exams]
-  (map #(clojure.set/rename-keys % {;:building :b
-                                    :coursecode :c
-                                    :datetime :d
-                                    :shortcode :s
-                                    ;:lat :t
-                                    ;:lng :g
-                                    :year :y})
-       exams))
+  (->> exams
+       (map #(clojure.set/rename-keys % {;:building :b
+                                         :coursecode :c
+                                         :datetime :d
+                                         :shortcode :s
+                                         ;:lat :t
+                                         ;:lng :g
+                                         :year :y}))))
 
 (defn hashbuildings [exams]
-  {:exams exams
-   :buildings (reduce #(assoc %1 (keyword (:code %2))
-                                 (dissoc %2 :code))
-                      {}
-                      (sql/query db
-                                 ["SELECT DISTINCT s.building as code,
-                                    ifnull(b.name, s.building) as name,
-                                    b.lat,
-                                    b.lng
-                                  FROM schedule_2014w2 s
-                                  LEFT JOIN buildings b ON b.code = s.building"]))})
+  (let [rows (sql/query
+               db
+               ["SELECT DISTINCT s.building as code,
+                ifnull(b.name, s.building) as name,
+                b.lat,
+                b.lng
+                FROM schedule_2014w2 s
+                LEFT JOIN buildings b ON b.code = s.building"])]
+    {:exams exams
+     :buildings (->> rows
+                     (map (fn [{:keys [code] :as row}]
+                            {(keyword code)
+                             (dissoc row :code)}))
+                     merge)}))
 
 (defn home-data []
   (-> (next-exams "now" 999)
@@ -212,7 +209,7 @@
 
 (def app
   (-> app-routes
-      (json-middleware/wrap-json-response)
+      json-middleware/wrap-json-response
       (wrap-defaults site-defaults)))
 
 (defn -main [& [port]]
