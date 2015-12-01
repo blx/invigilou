@@ -167,11 +167,8 @@
                 FROM schedule_2014w2 s
                 LEFT JOIN buildings b ON b.code = s.building"])]
     {:exams exams
-     :buildings (->> rows
-                     (map (fn [{:keys [code] :as row}]
-                            {(keyword code)
-                             (dissoc row :code)}))
-                     merge)}))
+     :buildings (zipmap (map (comp keyword :code) rows)
+                        (map #(dissoc % :code) rows))}))
 
 (defn home-data []
   (-> (next-exams "2015-04-04" 999)
