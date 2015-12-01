@@ -67,6 +67,8 @@ If you watch your coffee closely enough, it will turn into Javascript:
 $ coffee -o resources/public/js/ -cw src/coffee/
 ```
 
+To do a full build, run `npm run build`, which compiles the coffeescript and then uglifies it and concatenates a couple of libraries to produce `exams.min.js`.
+
 ## Running
 
 For development, with auto-reload on change of Clojure files:
