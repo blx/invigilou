@@ -20,6 +20,9 @@
 (def db {:subprotocol "sqlite"
          :subname "data/exam-schedule.sqlite"})
 
+(def ^:private query
+  (partial sql/query db))
+
 (defn- setup-db! []
   (->>
     (sql/create-table-ddl :buildings
@@ -44,9 +47,9 @@
   first run, I think Google was throttling or something."
   []
   (http/with-connection-pool {}
-    (doseq [b (sql/query db ["SELECT DISTINCT address
-                             FROM buildings
-                             WHERE lat is null OR lng is null"])]
+    (doseq [b (query ["SELECT DISTINCT address
+                      FROM buildings
+                      WHERE lat is null OR lng is null"])]
       (-> b
           (#(merge % (geocode (str (:address %) ", Vancouver BC"))))
           (#(sql/update! db :buildings % ["address = ?" (:address %)]))
@@ -73,11 +76,10 @@
 (defn building-name
   "Lookup full name from SIS building shortcode"
   [code]
-  (let [[name] (sql/query db
-                          ["SELECT name
-                           FROM buildings
-                           WHERE code = ?"
-                           code])]
+  (let [[name] (query ["SELECT name
+                       FROM buildings
+                       WHERE code = ?"
+                       code])]
     (or name code)))
 
 
@@ -92,16 +94,15 @@
 
 (defn api-building-coords [code]
   (first
-    (sql/query db ["SELECT lat, lng FROM buildings
-                   WHERE code = ?" code])))
+    (query ["SELECT lat, lng FROM buildings
+            WHERE code = ?" code])))
 
 (defn api-calendar []
-  (->> (sql/query db
-                  ["SELECT
-                       strftime('%s', datetime) as datetime,
-                       count(*) as n
-                   FROM schedule_2014w2
-                   GROUP BY datetime"])
+  (->> (query ["SELECT
+                   strftime('%s', datetime) as datetime,
+                   count(*) as n
+               FROM schedule_2014w2
+               GROUP BY datetime"])
        ; json: {"2015-01-01 12:01:02": 45, ...}
        (reduce #(assoc %1 (keyword (:datetime %2)) (:n %2))
                {})))
@@ -130,21 +131,20 @@
   ([] (next-exams "now"))
   ([after] (next-exams after 1))
   ([after N]
-   (sql/query db
-              [(str "SELECT "
+   (query [(str "SELECT "
                    ;ifnull(b.name, s.building) as building,
                    "s.coursecode,
                    cast(strftime('%s', s.datetime) as integer) as datetime,
                    s.building as shortcode "
                    ;b.lat,
                    ;b.lng
-               "FROM schedule_2014w2 s
-               JOIN (SELECT datetime FROM schedule_2014w2
-                     WHERE datetime >= datetime(?)
-                     GROUP BY datetime LIMIT ?) f
-                    ON f.datetime = s.datetime
-               LEFT JOIN buildings b ON b.code = s.building
-               ORDER BY s.datetime, coursecode")
+                "FROM schedule_2014w2 s
+                JOIN (SELECT datetime FROM schedule_2014w2
+                      WHERE datetime >= datetime(?)
+                      GROUP BY datetime LIMIT ?) f
+                     ON f.datetime = s.datetime
+                LEFT JOIN buildings b ON b.code = s.building
+                ORDER BY s.datetime, coursecode")
                after N])))
 
 (defn keyshrinker [exams]
@@ -158,8 +158,7 @@
                                          :year :y}))))
 
 (defn hashbuildings [exams]
-  (let [rows (sql/query
-               db
+  (let [rows (query
                ["SELECT DISTINCT s.building as code,
                 ifnull(b.name, s.building) as name,
                 b.lat,
